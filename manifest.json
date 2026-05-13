@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Garmin Distance Calculator",
+  "version": "1.0",
+  "description": "Automatically calculates the total distance of a workout in Garmin Connect.",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://connect.garmin.com/app/training/adaptive/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
