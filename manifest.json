@@ -8,7 +8,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://connect.garmin.com/app/training/adaptive/*"],
+      "matches": ["https://connect.garmin.com/app/*"],
       "js": ["content.js"],
       "run_at": "document_idle"
     }

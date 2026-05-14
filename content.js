@@ -1,4 +1,5 @@
 (function () {
+  const ADAPTIVE_PLAN = "[class*='adaptiveCoachContainer']";
   const SUMMARY_SELECTOR = ".workout-summary";
   const RESULT_ID = "garmin-distance-calculator-total";
   const STEP_SELECTOR = ".workout-step-container-in-modal";
@@ -15,6 +16,10 @@
   const DEBUG = false;
 
   let lastDebugSnapshot = "";
+
+  function isAdaptivePlan() {
+    return document.querySelector(ADAPTIVE_PLAN) !== null;
+  }
 
   function debug(...args) {
     if (DEBUG) {
@@ -203,6 +208,10 @@
   }
 
   function updateAllSummaries() {
+    if (!isAdaptivePlan()) {
+      return;
+    }
+
     scheduled = false;
     const snapshot = JSON.stringify({
       path: location.pathname,
@@ -215,14 +224,6 @@
     if (snapshot !== lastDebugSnapshot) {
       lastDebugSnapshot = snapshot;
       debug("DOM snapshot", JSON.parse(snapshot));
-    }
-
-    if (!location.pathname.includes("/app/training/adaptive/details/")) {
-      debug(
-        "Skipped: URL path does not match adaptive details page",
-        location.pathname,
-      );
-      return;
     }
 
     const summaries = document.querySelectorAll(SUMMARY_SELECTOR);
