@@ -1,5 +1,6 @@
 (function () {
   const ADAPTIVE_PLAN = "[class*='adaptiveCoachContainer']";
+  const MODAL = "class*='modal-calendar-event'";
   const SUMMARY_SELECTOR = ".workout-summary";
   const RESULT_ID = "garmin-distance-calculator-total";
   const STEP_SELECTOR = ".workout-step-container-in-modal";
@@ -19,12 +20,6 @@
 
   function isAdaptivePlan() {
     return document.querySelector(ADAPTIVE_PLAN) !== null;
-  }
-
-  function debug(...args) {
-    if (DEBUG) {
-      console.log(DEBUG_PREFIX, ...args);
-    }
   }
 
   function warn(...args) {
@@ -108,7 +103,7 @@
       };
     });
 
-    debug("Step details", details);
+    warn("Step details", details);
 
     return details.reduce((total, step) => total + step.total, 0);
   }
@@ -124,27 +119,15 @@
 
     const value = document.createElement("div");
     value.dataset.garminDistanceValue = "true";
-    value.style.fontSize = "18px";
-    value.style.fontWeight = "400";
-    value.style.lineHeight = "22px";
 
     const label = document.createElement("div");
     label.textContent = "Total Distance";
-    label.style.color = "#666";
-    label.style.fontSize = "12px";
-    label.style.lineHeight = "16px";
 
     container.append(value, label);
 
     return container;
   }
 
-  function getResultHost(summary) {
-    const modalContent = summary.closest(MODAL_CONTENT_SELECTOR);
-    const dataBlocks = modalContent?.querySelector(DATA_BLOCKS_SELECTOR);
-
-    return dataBlocks || summary;
-  }
 
   function applyMetricClasses(result, resultHost) {
     const existingBlock = resultHost.querySelector(METRIC_BLOCK_SELECTOR);
@@ -159,29 +142,23 @@
 
     if (existingValue?.className && value) {
       value.className = existingValue.className;
-      value.style.fontSize = "";
-      value.style.fontWeight = "";
-      value.style.lineHeight = "";
     }
 
     if (existingLabel?.className && label) {
       label.className = existingLabel.className;
-      label.style.color = "";
-      label.style.fontSize = "";
-      label.style.lineHeight = "";
     }
   }
 
   function renderDistance(summary) {
     const distance = calculateTotalDistance(summary);
-    const resultHost = getResultHost(summary);
-    let result = resultHost.querySelector(`#${RESULT_ID}`);
     const modalContent = summary.closest(MODAL_CONTENT_SELECTOR);
+    const resultHost = modalContent?.querySelector(DATA_BLOCKS_SELECTOR);;
+    let result = resultHost.querySelector(`#${RESULT_ID}`);
     const staleResults = Array.from(
       (modalContent || summary).querySelectorAll(`#${RESULT_ID}`),
     ).filter((element) => element.parentElement !== resultHost);
 
-    debug("Calculated total distance", distance, summary);
+    warn("Calculated total distance", distance, summary);
 
     if (!distance) {
       warn("Distance is zero, result will not be displayed", summary);
@@ -196,7 +173,7 @@
       result = createResultElement();
       resultHost.appendChild(result);
       applyMetricClasses(result, resultHost);
-      debug("Distance element appended", result);
+      warn("Distance element appended", result);
     }
 
     const value = result.querySelector("[data-garmin-distance-value]");
@@ -214,8 +191,6 @@
 
     scheduled = false;
     const snapshot = JSON.stringify({
-      path: location.pathname,
-      summaries: document.querySelectorAll(SUMMARY_SELECTOR).length,
       steps: document.querySelectorAll(STEP_SELECTOR).length,
       labels: document.querySelectorAll(LABEL_SELECTOR).length,
       values: document.querySelectorAll(VALUE_SELECTOR).length,
@@ -223,16 +198,16 @@
 
     if (snapshot !== lastDebugSnapshot) {
       lastDebugSnapshot = snapshot;
-      debug("DOM snapshot", JSON.parse(snapshot));
+      warn("DOM snapshot", JSON.parse(snapshot));
     }
 
-    const summaries = document.querySelectorAll(SUMMARY_SELECTOR);
+    const summary = document.querySelector(SUMMARY_SELECTOR);
 
-    if (!summaries.length) {
+    if (!summary) {
       warn("No workout summary found yet");
     }
 
-    summaries.forEach(renderDistance);
+    renderDistance(summary);
   }
 
   let debounceTimer = null;
